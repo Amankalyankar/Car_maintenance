@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Service Data Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Car Service Dashboard</h1>
+            <p class="text-md text-gray-600 mt-2">Manage and filter service records with ease.</p>
+        </header>
+
+        <main>
+            <!-- Data Entry and Filter Section -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Filters -->
+                    <div>
+                        <label for="searchDate" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                        <input type="date" id="searchDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="searchAdviser" class="block text-sm font-medium text-gray-700 mb-1">Filter by Adviser</label>
+                        <input type="text" id="searchAdviser" placeholder="Adviser name..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="searchModel" class="block text-sm font-medium text-gray-700 mb-1">Filter by Car Model</label>
+                        <input type="text" id="searchModel" placeholder="Car model..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="flex items-end space-x-3">
+                        <button id="resetFiltersBtn" class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition shadow-md">Reset</button>
+                        <button id="openModalBtn" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition shadow-md">Add New</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Section -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Sr. No.</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Car No.</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Model</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Treatment</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">R.O. No.</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Invoice No.</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Adviser</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Discount</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Final Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Data rows will be inserted here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                 <div id="noResults" class="text-center py-10 text-gray-500 hidden">
+                    <p class="font-semibold text-lg">No records found.</p>
+                    <p>Try adjusting your filters or adding a new record.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="formModal" class="modal fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 opacity-0 -translate-y-10 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 transform transition-transform duration-300 scale-95">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900" id="modalTitle">Add New Service Record</h2>
+            <form id="dataForm" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Form fields will be dynamically generated here -->
+                 <div class="col-span-1 sm:col-span-2">
+                    <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+                    <input type="date" name="date" id="date" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="carNo" class="block text-sm font-medium text-gray-700">Car No.</label>
+                    <input type="text" name="carNo" id="carNo" required placeholder="e.g., MH-12-AB-1234" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="model" class="block text-sm font-medium text-gray-700">Model</label>
+                    <input type="text" name="model" id="model" required placeholder="e.g., Honda City" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-1 sm:col-span-2">
+                    <label for="treatmentName" class="block text-sm font-medium text-gray-700">Treatment Name</label>
+                    <input type="text" name="treatmentName" id="treatmentName" required placeholder="e.g., Full Body Wash" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="roNo" class="block text-sm font-medium text-gray-700">R.O. NO.</label>
+                    <input type="text" name="roNo" id="roNo" required placeholder="Repair Order No." class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="invoiceNo" class="block text-sm font-medium text-gray-700">INVOICE NO.</label>
+                    <input type="text" name="invoiceNo" id="invoiceNo" required placeholder="Invoice No." class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-1 sm:col-span-2">
+                    <label for="adviser" class="block text-sm font-medium text-gray-700">Adviser</label>
+                    <input type="text" name="adviser" id="adviser" required placeholder="Adviser Name" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount w/o Tax (Rs.)</label>
+                    <input type="number" name="amount" id="amount" required placeholder="0.00" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="discount" class="block text-sm font-medium text-gray-700">Discount (Rs.)</label>
+                    <input type="number" name="discount" id="discount" required placeholder="0.00" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-1 sm:col-span-2 flex justify-end space-x-4 mt-4">
+                    <button type="button" id="closeModalBtn" class="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg font-semibold hover:bg-gray-300 transition">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENTS ---
+            const tableBody = document.getElementById('dataTableBody');
+            const openModalBtn = document.getElementById('openModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const formModal = document.getElementById('formModal');
+            const dataForm = document.getElementById('dataForm');
+            const noResults = document.getElementById('noResults');
+
+            // Filter inputs
+            const searchDate = document.getElementById('searchDate');
+            const searchAdviser = document.getElementById('searchAdviser');
+            const searchModel = document.getElementById('searchModel');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+
+            // --- STATE MANAGEMENT ---
+            // This is our local, in-browser "database".
+            // In a real application, this data would come from your Neon PostgreSQL database.
+            let serviceRecords = [
+                // Sample data to make the app look populated on load
+                { srNo: 1, date: '2024-07-15', carNo: 'MH-14-EU-4567', model: 'Toyota Fortuner', treatmentName: 'Ceramic Coating', roNo: 'RO1001', invoiceNo: 'INV1001', adviser: 'John Doe', amount: 25000, discount: 1000 },
+                { srNo: 2, date: '2024-07-16', carNo: 'DL-08-CA-9876', model: 'Maruti Swift', treatmentName: 'Interior Detailing', roNo: 'RO1002', invoiceNo: 'INV1002', adviser: 'Jane Smith', amount: 5000, discount: 200 },
+                { srNo: 3, date: '2024-07-16', carNo: 'KA-01-MJ-3456', model: 'Honda City', treatmentName: 'Engine Flush', roNo: 'RO1003', invoiceNo: 'INV1003', adviser: 'Peter Jones', amount: 3500, discount: 0 },
+                { srNo: 4, date: '2024-07-18', carNo: 'TN-22-BC-7890', model: 'Toyota Fortuner', treatmentName: 'Full Service', roNo: 'RO1004', invoiceNo: 'INV1004', adviser: 'John Doe', amount: 12000, discount: 500 },
+            ];
+            let currentSrNo = serviceRecords.length + 1;
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Renders the provided data into the HTML table.
+             * @param {Array} data - The array of service record objects to display.
+             */
+            const renderTable = (data) => {
+                tableBody.innerHTML = '';
+                if (data.length === 0) {
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                    data.forEach(record => {
+                        const finalAmount = record.amount - record.discount;
+                        const row = `
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.srNo}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.date}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.carNo}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.model}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.treatmentName}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.roNo}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.invoiceNo}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${record.adviser}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₹${record.amount.toFixed(2)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₹${record.discount.toFixed(2)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-700">₹${finalAmount.toFixed(2)}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                }
+            };
+
+            /**
+             * Filters the service records based on the current values of the search inputs.
+             */
+            const applyFilters = () => {
+                const dateFilter = searchDate.value;
+                const adviserFilter = searchAdviser.value.toLowerCase();
+                const modelFilter = searchModel.value.toLowerCase();
+
+                const filteredData = serviceRecords.filter(record => {
+                    const adviserMatch = record.adviser.toLowerCase().includes(adviserFilter);
+                    const modelMatch = record.model.toLowerCase().includes(modelFilter);
+                    const dateMatch = !dateFilter || record.date === dateFilter;
+                    return adviserMatch && modelMatch && dateMatch;
+                });
+
+                renderTable(filteredData);
+            };
+
+            /**
+             * Opens the modal for adding a new record.
+             */
+            const openFormModal = () => {
+                formModal.classList.remove('opacity-0', '-translate-y-10', 'pointer-events-none');
+                formModal.querySelector('.modal-content').classList.remove('scale-95');
+            };
+
+            /**
+             * Closes the modal and resets the form.
+             */
+            const closeFormModal = () => {
+                formModal.classList.add('opacity-0', '-translate-y-10', 'pointer-events-none');
+                formModal.querySelector('.modal-content').classList.add('scale-95');
+                dataForm.reset();
+            };
+            
+            /**
+             * Handles the form submission to add a new record.
+             * @param {Event} e - The form submission event.
+             */
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                const formData = new FormData(dataForm);
+                const newRecord = {
+                    srNo: currentSrNo++,
+                    date: formData.get('date'),
+                    carNo: formData.get('carNo'),
+                    model: formData.get('model'),
+                    treatmentName: formData.get('treatmentName'),
+                    roNo: formData.get('roNo'),
+                    invoiceNo: formData.get('invoiceNo'),
+                    adviser: formData.get('adviser'),
+                    amount: parseFloat(formData.get('amount')),
+                    discount: parseFloat(formData.get('discount')),
+                };
+
+                // In a real app, you would send this `newRecord` object to your backend API.
+                // The backend would then insert it into your Neon PostgreSQL database.
+                // Example:
+                // fetch('/api/records', { method: 'POST', body: JSON.stringify(newRecord) })
+                //   .then(response => response.json())
+                //   .then(data => {
+                //      // Add the new record from the database response to the local state
+                //      serviceRecords.push(data);
+                //      applyFilters(); // Re-render the table
+                //   });
+
+                serviceRecords.push(newRecord);
+                applyFilters(); // Re-render table with the new data
+                closeFormModal();
+            };
+
+            /**
+             * Resets all filter inputs and re-renders the full table.
+             */
+            const resetFilters = () => {
+                searchDate.value = '';
+                searchAdviser.value = '';
+                searchModel.value = '';
+                applyFilters();
+            };
+
+            // --- EVENT LISTENERS ---
+            openModalBtn.addEventListener('click', openFormModal);
+            closeModalBtn.addEventListener('click', closeFormModal);
+            dataForm.addEventListener('submit', handleFormSubmit);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+
+            // Add event listeners to filter inputs to apply filters on change
+            [searchDate, searchAdviser, searchModel].forEach(input => {
+                input.addEventListener('input', applyFilters);
+            });
+
+            // Close modal if clicking on the background overlay
+            formModal.addEventListener('click', (e) => {
+                if (e.target === formModal) {
+                    closeFormModal();
+                }
+            });
+
+            // --- INITIALIZATION ---
+            // Initial render of the table on page load.
+            // In a real app, you'd fetch this initial data from your backend API.
+            // Example:
+            // fetch('/api/records')
+            //   .then(response => response.json())
+            //   .then(data => {
+            //      serviceRecords = data;
+            //      currentSrNo = data.length > 0 ? Math.max(...data.map(r => r.srNo)) + 1 : 1;
+            //      renderTable(serviceRecords);
+            //   });
+            renderTable(serviceRecords);
+        });
+    </script>
+    
+    <!-- 
+    ================================================================
+    BACKEND INTEGRATION GUIDE (Connecting to Neon PostgreSQL)
+    ================================================================
+
+    This HTML file is a fully functional FRONTEND application. It cannot
+    directly connect to a database like PostgreSQL for security reasons.
+    To connect this to your Neon database, you need a BACKEND service.
+
+    --- Why a Backend is Necessary ---
+    1.  Security: Your database credentials (username, password, host)
+        must be kept secret. If you put them in frontend JavaScript,
+        anyone could see them and access your database.
+    2.  Logic: A backend handles the logic of safely querying the
+        database.
+    3.  Control: It provides a controlled API (e.g., REST API) for your
+        frontend to interact with, preventing unauthorized actions.
+
+    --- Steps to Connect to Neon ---
+
+    1.  CHOOSE A BACKEND TECHNOLOGY:
+        -   Node.js with Express: A very popular choice for JavaScript developers.
+        -   Python with Flask or Django: Great for Python developers.
+        -   Serverless Functions: Services like Vercel, Netlify, or AWS Lambda
+            are modern, scalable options.
+
+    2.  CREATE THE DATABASE TABLE IN NEON:
+        Log in to your Neon console and run the following SQL query to
+        create the table that matches this application's schema:
+
+        CREATE TABLE service_records (
+            sr_no SERIAL PRIMARY KEY,
+            "date" DATE NOT NULL,
+            car_no VARCHAR(20) NOT NULL,
+            model VARCHAR(50) NOT NULL,
+            treatment_name VARCHAR(100) NOT NULL,
+            ro_no VARCHAR(50),
+            invoice_no VARCHAR(50),
+            adviser VARCHAR(100) NOT NULL,
+            amount NUMERIC(10, 2) NOT NULL,
+            discount NUMERIC(10, 2) DEFAULT 0
+        );
+
+    3.  BUILD YOUR BACKEND API (Example using Node.js/Express):
+        
+        a.  Setup a new Node.js project:
+            `npm init -y`
+            `npm install express pg cors`
+
+        b.  Create a server file (e.g., `server.js`):
+            
+            // server.js
+            const express = require('express');
+            const { Pool } = require('pg');
+            const cors = require('cors');
+            const app = express();
+            app.use(cors());
+            app.use(express.json());
+
+            // Get your connection string from the Neon console
+            const connectionString = 'YOUR_NEON_DATABASE_CONNECTION_STRING';
+            const pool = new Pool({ connectionString });
+
+            // API Endpoint to GET all records
+            app.get('/api/records', async (req, res) => {
+                try {
+                    const result = await pool.query('SELECT *, (amount - discount) as final_amount FROM service_records ORDER BY sr_no DESC');
+                    res.json(result.rows);
+                } catch (err) {
+                    console.error(err);
+                    res.status(500).json({ error: 'Internal server error' });
+                }
+            });
+
+            // API Endpoint to POST a new record
+            app.post('/api/records', async (req, res) => {
+                try {
+                    const { date, carNo, model, treatmentName, roNo, invoiceNo, adviser, amount, discount } = req.body;
+                    const newRecord = await pool.query(
+                        'INSERT INTO service_records (date, car_no, model, treatment_name, ro_no, invoice_no, adviser, amount, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+                        [date, carNo, model, treatmentName, roNo, invoiceNo, adviser, amount, discount]
+                    );
+                    res.status(201).json(newRecord.rows[0]);
+                } catch (err) {
+                    console.error(err);
+                    res.status(500).json({ error: 'Internal server error' });
+                }
+            });
+
+            const PORT = process.env.PORT || 3000;
+            app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    4.  UPDATE THE FRONTEND JAVASCRIPT:
+        -   Remove the sample `serviceRecords` array.
+        -   In the `DOMContentLoaded` event listener, use `fetch` to call
+            your new backend API (`/api/records`) to get the initial data.
+        -   In the `handleFormSubmit` function, use `fetch` to `POST` the
+            new record data to your backend.
+        -   Update the filtering logic to make API calls to your backend
+            with filter parameters instead of filtering the local array.
+            (e.g., `/api/records?adviser=John&model=Toyota`)
+
+    This structure separates your frontend (what the user sees) from your
+    backend (the secure link to your database), which is the standard and
+    secure way to build web applications.
+    -->
+</body>
+</html>

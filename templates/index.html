@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Using Inter as the default font */
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom scrollbar for a more integrated look */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; } /* slate-800 */
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; } /* slate-600 */
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; } /* slate-500 */
+        
+        /* Utility to hide scrollbar but keep functionality */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Modal transition styles */
+        .modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+
+        /* Custom loader animation with the new theme color */
+        .loader {
+            border: 4px solid #334155; /* slate-700 */
+            border-top-color: #2dd4bf; /* teal-400 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header Section -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-blue-500">
+                    Car Service Dashboard
+                </span>
+            </h1>
+            <p class="text-md text-slate-400 mt-3 max-w-xl mx-auto">
+                Effortlessly manage, filter, and track all your service records in one place.
+            </p>
+        </header>
+
+        <main>
+            <!-- Filter Section -->
+            <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-2xl shadow-black/20 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Filter inputs with improved styling -->
+                    <div>
+                        <label for="searchDate" class="block text-sm font-medium text-slate-300 mb-2">Filter by Date</label>
+                        <input type="date" id="searchDate" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition text-white">
+                    </div>
+                    <div>
+                        <label for="searchAdviser" class="block text-sm font-medium text-slate-300 mb-2">Filter by Adviser</label>
+                        <input type="text" id="searchAdviser" placeholder="Adviser name..." class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition text-white placeholder-slate-400">
+                    </div>
+                    <div>
+                        <label for="searchModel" class="block text-sm font-medium text-slate-300 mb-2">Filter by Car Model</label>
+                        <input type="text" id="searchModel" placeholder="Car model..." class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition text-white placeholder-slate-400">
+                    </div>
+                    <!-- Action buttons with new theme and icons -->
+                    <div class="flex items-end space-x-3">
+                        <button id="resetFiltersBtn" class="w-full bg-slate-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-slate-500 transition shadow-md flex items-center justify-center space-x-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Reset</span>
+                        </button>
+                        <button id="openModalBtn" class="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-teal-500 transition shadow-md flex items-center justify-center space-x-2">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Add New</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Section -->
+            <div class="bg-slate-800 rounded-2xl shadow-2xl shadow-black/20 overflow-hidden border border-slate-700">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-700">
+                        <thead class="bg-slate-700/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Actions</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Sr. No.</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Car No.</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Model</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Treatment</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">R.O. No.</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Invoice No.</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Adviser</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Discount</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Final Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="bg-slate-800 divide-y divide-slate-700">
+                            <!-- Table rows will be injected here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                 <div id="loadingState" class="text-center py-10"><div class="loader mx-auto"></div><p class="mt-4 text-slate-400">Loading records...</p></div>
+                 <div id="noResults" class="text-center py-10 text-slate-400 hidden"><p class="font-semibold text-lg text-white">No records found.</p><p>Try adjusting your filters or adding a new record.</p></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="formModal" class="modal fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 -translate-y-10 pointer-events-none">
+        <div class="modal-content bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-8 transform transition-transform duration-300 scale-95 border border-slate-700">
+            <h2 class="text-2xl font-bold mb-6 text-white" id="modalTitle">Add New Service Record</h2>
+            <form id="dataForm" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                 <div class="col-span-1 sm:col-span-2">
+                    <label for="date" class="block text-sm font-medium text-slate-300">Date</label>
+                    <input type="date" name="date" id="date" required class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white">
+                </div>
+                <div>
+                    <label for="carNo" class="block text-sm font-medium text-slate-300">Car No.</label>
+                    <input type="text" name="carNo" id="carNo" required placeholder="e.g., MH-12-AB-1234" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="model" class="block text-sm font-medium text-slate-300">Model</label>
+                    <input type="text" name="model" id="model" required placeholder="e.g., Honda City" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div class="col-span-1 sm:col-span-2">
+                    <label for="treatmentName" class="block text-sm font-medium text-slate-300">Treatment Name</label>
+                    <input type="text" name="treatmentName" id="treatmentName" required placeholder="e.g., Full Body Wash" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="roNo" class="block text-sm font-medium text-slate-300">R.O. NO.</label>
+                    <input type="text" name="roNo" id="roNo" required placeholder="Repair Order No." class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="invoiceNo" class="block text-sm font-medium text-slate-300">INVOICE NO.</label>
+                    <input type="text" name="invoiceNo" id="invoiceNo" required placeholder="Invoice No." class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div class="col-span-1 sm:col-span-2">
+                    <label for="adviser" class="block text-sm font-medium text-slate-300">Adviser</label>
+                    <input type="text" name="adviser" id="adviser" required placeholder="Adviser Name" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-slate-300">Amount w/o Tax (Rs.)</label>
+                    <input type="number" name="amount" id="amount" step="0.01" required placeholder="0.00" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div>
+                    <label for="discount" class="block text-sm font-medium text-slate-300">Discount (Rs.)</label>
+                    <input type="number" name="discount" id="discount" step="0.01" required placeholder="0.00" class="mt-2 block w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-white placeholder-slate-400">
+                </div>
+                <div class="col-span-1 sm:col-span-2 flex justify-end space-x-4 mt-6">
+                    <button type="button" id="closeModalBtn" class="bg-slate-600 text-slate-100 py-2 px-6 rounded-lg font-semibold hover:bg-slate-500 transition">Cancel</button>
+                    <button type="submit" class="bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-teal-500 transition">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT ---
+            let allRecords = []; // Cache for holding all fetched records
+            let currentRecordId = null; // To track if we are adding or editing
+
+            // --- DOM ELEMENTS ---
+            const tableBody = document.getElementById('dataTableBody');
+            const openModalBtn = document.getElementById('openModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const formModal = document.getElementById('formModal');
+            const dataForm = document.getElementById('dataForm');
+            const modalTitle = document.getElementById('modalTitle');
+            const noResults = document.getElementById('noResults');
+            const loadingState = document.getElementById('loadingState');
+            const searchDate = document.getElementById('searchDate');
+            const searchAdviser = document.getElementById('searchAdviser');
+            const searchModel = document.getElementById('searchModel');
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Renders the provided data into the HTML table with dynamic serial numbers and action icons.
+             * @param {Array} data - The array of service record objects to display.
+             */
+            const renderTable = (data) => {
+                tableBody.innerHTML = '';
+                if (!data || data.length === 0) {
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                    data.forEach((record, index) => {
+                        const finalAmount = record.final_amount || (record.amount - record.discount);
+                        const row = `
+                            <tr class="hover:bg-slate-700/50 transition duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center space-x-4">
+                                        <button class="edit-btn text-sky-500 hover:text-sky-400" data-id="${record.sr_no}" title="Edit">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                        <button class="delete-btn text-rose-500 hover:text-rose-400" data-id="${record.sr_no}" title="Delete">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-100">${index + 1}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${new Date(record.date).toLocaleDateString()}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.car_no}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.model}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.treatment_name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.ro_no}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.invoice_no}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">${record.adviser}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">₹${parseFloat(record.amount).toFixed(2)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">₹${parseFloat(record.discount).toFixed(2)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-teal-400">₹${parseFloat(finalAmount).toFixed(2)}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                }
+            };
+            
+            /**
+             * Fetches records from the backend, stores them in the local cache, and renders the table.
+             */
+            const fetchAndRenderRecords = async () => {
+                loadingState.classList.remove('hidden');
+                noResults.classList.add('hidden');
+                tableBody.innerHTML = '';
+                const params = new URLSearchParams({
+                    date: searchDate.value,
+                    adviser: searchAdviser.value,
+                    model: searchModel.value
+                });
+                
+                try {
+                    // Use a relative path for the API call
+                    const response = await fetch(`/api/records?${params.toString()}`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const records = await response.json();
+                    allRecords = records; // Cache the fetched records
+                    renderTable(allRecords);
+                } catch (error) {
+                    console.error("Failed to fetch records:", error);
+                    noResults.innerHTML = `<p class="font-semibold text-lg text-red-400">Error loading data.</p><p>Could not connect to the backend server.</p>`;
+                    noResults.classList.remove('hidden');
+                } finally {
+                    loadingState.classList.add('hidden');
+                }
+            };
+
+            /**
+             * Opens the modal and sets it up for either adding or editing a record.
+             * @param {Object|null} record - The record object to edit, or null to add a new one.
+             */
+            const openFormModal = (record = null) => {
+                dataForm.reset();
+                if (record) {
+                    // --- EDIT MODE ---
+                    currentRecordId = record.sr_no;
+                    modalTitle.textContent = 'Edit Service Record';
+                    // The date from MySQL might include time, so split it to get YYYY-MM-DD
+                    document.getElementById('date').value = record.date.split('T')[0];
+                    document.getElementById('carNo').value = record.car_no;
+                    document.getElementById('model').value = record.model;
+                    document.getElementById('treatmentName').value = record.treatment_name;
+                    document.getElementById('roNo').value = record.ro_no;
+                    document.getElementById('invoiceNo').value = record.invoice_no;
+                    document.getElementById('adviser').value = record.adviser;
+                    document.getElementById('amount').value = record.amount;
+                    document.getElementById('discount').value = record.discount;
+                } else {
+                    // --- ADD MODE ---
+                    currentRecordId = null;
+                    modalTitle.textContent = 'Add New Service Record';
+                    document.getElementById('date').valueAsDate = new Date();
+                }
+                formModal.classList.remove('opacity-0', '-translate-y-10', 'pointer-events-none');
+                formModal.querySelector('.modal-content').classList.remove('scale-95');
+            };
+
+            /** Closes the modal and resets its state. */
+            const closeFormModal = () => {
+                formModal.classList.add('opacity-0', '-translate-y-10', 'pointer-events-none');
+                formModal.querySelector('.modal-content').classList.add('scale-95');
+                dataForm.reset();
+                currentRecordId = null; // Always reset the ID on close
+            };
+            
+            /** Handles form submission for both adding and updating records. */
+            const handleFormSubmit = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(dataForm);
+                const recordData = {
+                    date: formData.get('date'), carNo: formData.get('carNo'),
+                    model: formData.get('model'), treatmentName: formData.get('treatmentName'),
+                    roNo: formData.get('roNo'), invoiceNo: formData.get('invoiceNo'),
+                    adviser: formData.get('adviser'), amount: parseFloat(formData.get('amount')),
+                    discount: parseFloat(formData.get('discount')),
+                };
+
+                const isEditing = currentRecordId !== null;
+                // Use relative paths for the API calls
+                const url = isEditing ? `/api/records/${currentRecordId}` : `/api/records`;
+                const method = isEditing ? 'PUT' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(recordData),
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    closeFormModal();
+                    fetchAndRenderRecords();
+                } catch (error) {
+                    console.error("Failed to save record:", error);
+                    // A custom, non-blocking alert would be better in a real app
+                    alert(`Error: Could not save the record. Please check console for details.`);
+                }
+            };
+
+            /** Resets all filters and re-fetches data. */
+            const resetFilters = () => {
+                searchDate.value = '';
+                searchAdviser.value = '';
+                searchModel.value = '';
+                fetchAndRenderRecords();
+            };
+
+            // --- EVENT LISTENERS ---
+            openModalBtn.addEventListener('click', () => openFormModal());
+            closeModalBtn.addEventListener('click', closeFormModal);
+            dataForm.addEventListener('submit', handleFormSubmit);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+
+            // Debounced filter for text inputs
+            let debounceTimer;
+            [searchAdviser, searchModel].forEach(input => {
+                input.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(fetchAndRenderRecords, 300);
+                });
+            });
+            searchDate.addEventListener('change', fetchAndRenderRecords);
+
+            // Close modal on background click
+            formModal.addEventListener('click', (e) => {
+                if (e.target === formModal) closeFormModal();
+            });
+
+            // Event delegation for Edit and Delete buttons
+            tableBody.addEventListener('click', async (e) => {
+                const editBtn = e.target.closest('.edit-btn');
+                const deleteBtn = e.target.closest('.delete-btn');
+
+                if (editBtn) {
+                    const recordId = parseInt(editBtn.dataset.id, 10);
+                    const recordToEdit = allRecords.find(r => r.sr_no === recordId);
+                    if (recordToEdit) openFormModal(recordToEdit);
+                }
+
+                if (deleteBtn) {
+                    const recordId = deleteBtn.dataset.id;
+                    // A custom modal would be better than confirm()
+                    if (confirm(`Are you sure you want to delete record? This action cannot be undone.`)) {
+                        try {
+                            // Use a relative path for the API call
+                            const response = await fetch(`/api/records/${recordId}`, { method: 'DELETE' });
+                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                            fetchAndRenderRecords();
+                        } catch (error) {
+                            console.error("Failed to delete record:", error);
+                            alert("Error: Could not delete the record.");
+                        }
+                    }
+                }
+            });
+
+            // --- INITIALIZATION ---
+            fetchAndRenderRecords();
+        });
+    </script>
+</body>
+</html>
