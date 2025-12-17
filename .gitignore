@@ -20,3 +20,6 @@ instance/
 # Operating System files
 .DS_Store # macOS
 Thumbs.db # Windows
+
+#ngrok
+ngrok.exe
