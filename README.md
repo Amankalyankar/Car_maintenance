@@ -50,7 +50,7 @@ Follow these steps to get the application running locally.
 
 1.  **Clone the Repository**:
     ```bash
-    git clone https://github.com/Aman-627/Car_maintenance.git
+    git clone https://github.com/Amankalyankar/Car_maintenance.git
     cd Car_maintenance
     ```
 
